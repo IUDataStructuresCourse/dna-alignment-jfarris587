@@ -16,11 +16,12 @@ public class SequenceAligner {
 
   /**
    * Generates a pair of random DNA strands, where x is of length n and
-   * y has some length between n/2 and 3n/2, and aligns them using the 
+   * y has some length between n/2 and 3n/2, and aligns them using the
    * default judge.
    */
   public SequenceAligner(int n) {
-      this(randomDNA(n), randomDNA(n - gen.nextInt(n / 2) * (gen.nextInt(2) * 2 - 1)));
+    this(randomDNA(n),
+            randomDNA(n - gen.nextInt(n / 2) * (gen.nextInt(2) * 2 - 1)));
   }
 
   /**
@@ -29,7 +30,7 @@ public class SequenceAligner {
   public SequenceAligner(String x, String y) {
     this(x, y, new Judge());
   }
-  
+
   /**
    * Aligns the given strands using the specified judge.
    */
@@ -41,7 +42,9 @@ public class SequenceAligner {
     m = y.length();
     cache = new Result[n + 1][m + 1];
     fillCache();
-    traceback();
+    //traceback();
+
+
   }
 
   /**
@@ -57,14 +60,14 @@ public class SequenceAligner {
   public String getY() {
     return y;
   }
-  
+
   /**
    * Returns the judge associated with this pair.
    */
   public Judge getJudge() {
     return judge;
   }
-  
+
   /**
    * Returns the aligned version of the x strand.
    */
@@ -80,46 +83,110 @@ public class SequenceAligner {
   }
 
   /**
-   *  TODO: Solve the alignment problem using bottom-up dynamic programming
-   *  algorithm described in lecture. When you're done, cache[i][j] will hold
-   *  the result of solving the alignment problem for the first i characters
-   *  in x and the first j characters in y.
-   *  
-   *  Your algorithm must run in O(n * m) time, where n is the length of x
-   *  and m is the length of y.
-   *  
-   *  Ordering convention: So that your code will identify the same alignment
-   *  as is expected in Testing, we establish the following preferred order
-   *  of operations: M (diag), I (left), D (up). This only applies when you
-   *  are picking the operation with the biggest payoff and two or more  
-   *  operations have the same max score. 
+   * TODO: Solve the alignment problem using bottom-up dynamic programming
+   * algorithm described in lecture. When you're done, cache[i][j] will hold
+   * the result of solving the alignment problem for the first i characters
+   * in x and the first j characters in y.
+   * <p>
+   * Your algorithm must run in O(n * m) time, where n is the length of x
+   * and m is the length of y.
+   * <p>
+   * Ordering convention: So that your code will identify the same alignment
+   * as is expected in Testing, we establish the following preferred order
+   * of operations: M (diag), I (left), D (up). This only applies when you
+   * are picking the operation with the biggest payoff and two or more
+   * operations have the same max score.
    */
   private void fillCache() {
-      throw new UnsupportedOperationException();
+    char[] s1 = x.toCharArray();
+    char[] s2 = y.toCharArray();
+
+    Result diag;
+    Result left;
+    Result up;
+
+    cache[0][0] = new Result(0, Direction.NONE);
+    for (int i = 1; i < x.length(); i++) {
+
+      cache[0][i] = new Result(-i, Direction.LEFT);
+      cache[i][0] = new Result(-i, Direction.UP);
+    }
+
+
+    for (int i = 1; i < x.length(); i++) {
+      for (int j = 1; j < y.length(); j++) {
+
+        diag = cache[i-1][j-1];
+        left = cache[i][j-1];
+        up = cache[i-1][j];
+
+
+        if(s1[i] == s2[j]){
+          diag = new Result(diag.getScore() + 2, Direction.DIAGONAL);
+        }
+        else{
+          diag = new Result(diag.getScore() - 2, Direction.DIAGONAL);
+        }
+        left = new Result(left.getScore()-1, Direction.LEFT);
+        up = new Result(up.getScore()-1, Direction.UP);
+
+
+        cache[i][j] = chooseBest(diag, chooseBest(left, up));
+
+        }
+    }
   }
-  
+
+  public Result chooseBest(Result a, Result b){
+    if(a.getScore() > b.getScore()){
+      return a;
+    }
+    else if(a.getScore() < b.getScore()){
+      return b;
+    }
+    else{
+      return tied(a, b);
+    }
+  }
+
+  public Result tied(Result a, Result b){
+    if (a.getParent().equals(Direction.DIAGONAL)){
+      return a;
+    }
+    else if (b.getParent().equals(Direction.DIAGONAL)){
+      return b;
+    }
+    else if (a.getParent().equals(Direction.LEFT)){
+      return a;
+    }
+    else{
+      return b;
+    }
+  }
+
+
   /**
-   * TODO: Returns the result of solving the alignment problem for the 
+   * TODO: Returns the result of solving the alignment problem for the
    * first i characters in x and the first j characters in y. You can
    * find the result in O(1) time by looking in your cache.
    */
   public Result getResult(int i, int j) {
-      throw new UnsupportedOperationException();
+    return cache[i][j];
   }
-  
+
   /**
    * TODO: Mark the path by tracing back through parent pointers, starting
    * with the Result in the lower right corner of the cache. Run Result.markPath()
    * on each Result along the path. The GUI will highlight all such marked cells
-   * when you check 'Show path'. As you're tracing back along the path, build 
+   * when you check 'Show path'. As you're tracing back along the path, build
    * the aligned strings in alignedX and alignedY (using Constants.GAP_CHAR
    * to denote a gap in the strand).
-   * 
+   * <p>
    * Your algorithm must run in O(n + m) time, where n is the length of x
-   * and m is the length of y. 
+   * and m is the length of y.
    */
   private void traceback() {
-      throw new UnsupportedOperationException();
+    throw new UnsupportedOperationException();
   }
 
   /**
@@ -127,9 +194,9 @@ public class SequenceAligner {
    */
   public boolean isAligned() {
     return alignedX != null && alignedY != null &&
-        alignedX.length() == alignedY.length();
+            alignedX.length() == alignedY.length();
   }
-  
+
   /**
    * Returns the score associated with the current alignment.
    */
@@ -170,4 +237,12 @@ public class SequenceAligner {
     return sb.toString();
   }
 
+  //-------------------------------------------------------
+
+  public static void main(String[] args) {
+    SequenceAligner sa;
+    Result result;
+    sa = new SequenceAligner("", "");
+    sa.fillCache();
+  }
 }

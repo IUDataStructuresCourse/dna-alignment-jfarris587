@@ -56,7 +56,17 @@ public class Judge {
    * Returns the score associated with the two characters.
    */
   public int score(char a, char b) {
-      throw new UnsupportedOperationException();
+    if(a == '_' | b == '_'){
+      return getGapCost();
+    }
+
+    else if(a == b){
+      return getMatchCost();
+    }
+
+    else{
+      return getMismatchCost();
+    }
   }
   
   /**
@@ -65,6 +75,26 @@ public class Judge {
    * Returns the score associated with the two strings.
    */
   public int score(String s1, String s2) {
-      throw new UnsupportedOperationException();
+      int scores = 0;
+      char[] s1char = s1.toCharArray();
+      char[] s2char = s2.toCharArray();
+      for(int i = 0; i < s1.length(); i++){
+        scores += score(s1char[i], s2char[i]);
+      }
+
+      return scores;
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
