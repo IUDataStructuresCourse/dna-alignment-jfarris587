@@ -42,7 +42,7 @@ public class SequenceAligner {
     m = y.length();
     cache = new Result[n + 1][m + 1];
     fillCache();
-    //traceback();
+    traceback();
 
 
   }
@@ -106,29 +106,32 @@ public class SequenceAligner {
     Result up;
 
     cache[0][0] = new Result(0, Direction.NONE);
-    for (int i = 1; i < x.length(); i++) {
+    for (int i = 1; i <= y.length(); i++) {
 
-      cache[0][i] = new Result(-i, Direction.LEFT);
-      cache[i][0] = new Result(-i, Direction.UP);
+      cache[0][i] = new Result(judge.getGapCost() + cache[0][i-1].getScore(), Direction.LEFT);
+
     }
+      for (int i = 1; i <= x.length(); i++) {
 
+          cache[i][0] = new Result(judge.getGapCost() + cache[i-1][0].getScore(), Direction.UP);
 
-    for (int i = 1; i < x.length(); i++) {
-      for (int j = 1; j < y.length(); j++) {
-
+      }
+    for (int i = 1; i <= n; i++) {
+      for (int j = 1; j <= m; j++) {
         diag = cache[i-1][j-1];
         left = cache[i][j-1];
         up = cache[i-1][j];
 
 
-        if(s1[i] == s2[j]){
-          diag = new Result(diag.getScore() + 2, Direction.DIAGONAL);
+
+        if(s1[i-1] == s2[j-1]){
+          diag = new Result(diag.getScore() + judge.getMatchCost(), Direction.DIAGONAL);
         }
         else{
-          diag = new Result(diag.getScore() - 2, Direction.DIAGONAL);
+          diag = new Result(diag.getScore() + judge.getMismatchCost(), Direction.DIAGONAL);
         }
-        left = new Result(left.getScore()-1, Direction.LEFT);
-        up = new Result(up.getScore()-1, Direction.UP);
+        left = new Result(left.getScore() + judge.getGapCost(), Direction.LEFT);
+        up = new Result(up.getScore() + judge.getGapCost(), Direction.UP);
 
 
         cache[i][j] = chooseBest(diag, chooseBest(left, up));
@@ -186,12 +189,78 @@ public class SequenceAligner {
    * and m is the length of y.
    */
   private void traceback() {
-    throw new UnsupportedOperationException();
+      char[] s1 = x.toCharArray();
+      char[] s2 = y.toCharArray();
+
+      alignedX = "";
+      alignedY = "";
+
+
+      boolean finished = false;
+      Result next;
+      int x = n;
+      int y = m;
+
+      Result currentResult = cache[x][y];
+      currentResult.markPath();
+
+      Direction previous = currentResult.getParent();
+
+      if(s1.length != 0 && s2.length != 0) {
+
+
+          while (!finished) {
+
+
+              if (previous.equals(Direction.DIAGONAL)) {
+
+
+                  alignedX = alignedX + s1[x - 1];
+                  alignedY = alignedY + s2[y - 1];
+
+                  x = x - 1;
+                  y = y - 1;
+                  next = cache[x][y];
+              } else if (previous.equals(Direction.LEFT)) {
+
+                  alignedX = alignedX + '_';
+                  alignedY = alignedY + s2[y - 1];
+
+                  y = y - 1;
+                  next = cache[x][y];
+
+              } else {
+
+                  alignedX = alignedX + s1[x - 1];
+                  alignedY = alignedY + '_';
+
+                  x = x - 1;
+                  next = cache[x][y];
+              }
+
+              next.markPath();
+              currentResult = next;
+              previous = currentResult.getParent();
+
+
+              if (x == 0 && y == 0) {
+                  finished = true;
+              }
+
+
+          }
+          alignedX = new StringBuilder(alignedX).reverse().toString();
+          alignedY = new StringBuilder(alignedY).reverse().toString();
+      }
+
+
+
   }
 
-  /**
-   * Returns true iff these strands are seemingly aligned.
-   */
+
+      /**
+       * Returns true iff these strands are seemingly aligned.
+       */
   public boolean isAligned() {
     return alignedX != null && alignedY != null &&
             alignedX.length() == alignedY.length();
@@ -205,6 +274,8 @@ public class SequenceAligner {
       return judge.score(alignedX, alignedY);
     return 0;
   }
+
+
 
   /**
    * Returns a nice textual version of this alignment.
@@ -243,6 +314,14 @@ public class SequenceAligner {
     SequenceAligner sa;
     Result result;
     sa = new SequenceAligner("", "");
-    sa.fillCache();
+    Result d = new Result(2, Direction.DIAGONAL);
+    Result l = new Result(-2, Direction.LEFT);
+    Result u = new Result(5, Direction.UP);
+
+    Result n = sa.chooseBest(d,l);
+    n = sa.chooseBest(n,u);
+    System.out.println(n.getScore());
+
+
   }
 }

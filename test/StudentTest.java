@@ -73,6 +73,8 @@ public class StudentTest {
     assertEquals(0, result.getScore());
     assertEquals(Direction.NONE, result.getParent());
   }
+
+
   
   @Test
   public void singletons() {
@@ -248,6 +250,8 @@ public class StudentTest {
   public void simpleAlignment() {
     SequenceAligner sa;
     sa = new SequenceAligner("ACGT", "ACGT");
+
+
     assertTrue(sa.isAligned());
     assertEquals("ACGT", sa.getAlignedX());
     assertEquals("ACGT", sa.getAlignedY());
@@ -296,6 +300,7 @@ public class StudentTest {
     sa = new SequenceAligner("AAGGTT", "AACCGG");
     assertEquals("AA__GGTT", sa.getAlignedX());
     assertEquals("AACCGG__", sa.getAlignedY());
+
   }
   
   @Test
